@@ -1,0 +1,52 @@
+#!/bin/bash
+
+## Video Renamer (Vidren)
+## 
+## 
+## Requirements:
+##  * mediainfo
+## 
+# Global variables 
+input="$1" # contains file name or folder path
+output="$2" # (optional) alternative destination directory
+
+
+
+function rename_file(){
+    local inputFile="$1"
+    local targetname="" # contains final destination filepath
+
+    targetname=$(mediainfo $inputFile | grep "Encoded date" | sort -u) # get one single encoded date    
+    targetname=$(echo "$targetname" | awk '{print $5"_"$6}') # retrieve datetimestamp
+    targetname=$(echo "$targetname" | sed -e "s/://g" -e "s/-//g") # adjust format
+    targetname=$targetname".mp4" # add file ending 
+    targetname=${inputFile%/*}"/"$targetname # add folder path
+    echo "Performing: mv -n $inputFile $targetname" # -v 
+    ergo=$(mv -n $inputFile $targetname)
+    if [ $? -eq 0 ]
+    then
+        echo "Successfully renamed"
+    else
+        echo "Could not rename $inputFile: " >&2
+    fi
+}
+
+if [[ -d $input ]]; then
+    echo "$input is a directory"
+    for entry in $input/*.mp4 $input/*.MOV; do
+        [ -f "$entry" ] || break
+        rename_file "$entry"
+    done
+
+    
+elif [[ -f $input ]]; then
+    echo "$input is a file"
+    rename_file "$input"
+else
+    echo "$input is not valid"
+    exit 1
+fi
+
+
+exit 0
+

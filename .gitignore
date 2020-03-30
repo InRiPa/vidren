@@ -1,0 +1,4 @@
+.vscode/*
+*.code-workspace
+conv/
+!conv/.gitkeep
